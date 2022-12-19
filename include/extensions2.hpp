@@ -12,8 +12,6 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include <iostream>
-#include <fstream>
 
 namespace MegaHackExt {
 
