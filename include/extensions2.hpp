@@ -9,12 +9,24 @@
 #endif
 
 #include <string>
+#include <sstream>
 #include <vector>
+#include <iomanip>
+#include <iostream>
+#include <fstream>
 
 namespace MegaHackExt {
 
     struct Colour {
         unsigned char r, g, b;
+
+        std::string toHexString() {
+            std::stringstream SStr;
+            SStr << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)r
+                                                                  << (unsigned int)g
+                                                                  << (unsigned int)b;
+            return SStr.str();
+        }
     };
 
     namespace Client {
@@ -36,8 +48,8 @@ namespace MegaHackExt {
         MH_DLL void add(void* obj);
 
         void addElements(std::vector<void*> elements, bool auto_commit = true) {
-            for(auto i = elements.rbegin(); i != elements.rend(); i++) {
-                this->add(*i);
+            for(int i = elements.size() - 1; i >= 0; i--) {
+                this->add(elements[i]);
             }
             if(auto_commit) {
                 Client::commit(this);
@@ -264,6 +276,25 @@ namespace MegaHackExt {
 
         void refresh(bool trigger_callback = true) {
             this->set(this->get(), trigger_callback);
+        }
+
+        std::string getHexString() {
+            return this->get().toHexString();
+        }
+
+        void setHexString(std::string HexColor) {
+            std::vector<uint8_t> VectorColor;
+
+            for(int i = 0; i < HexColor.length(); i += 2) {
+                unsigned int x;
+                std::stringstream SStr;
+
+                SStr << std::hex << HexColor.substr(i, 2);
+                SStr >> x;
+                VectorColor.push_back(x);
+            }
+
+            this->set({VectorColor[0], VectorColor[1], VectorColor[2]});
         }
     };
 }
