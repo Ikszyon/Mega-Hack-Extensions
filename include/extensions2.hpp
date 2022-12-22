@@ -20,9 +20,11 @@ namespace MegaHackExt {
 
         std::string toHexString() {
             std::stringstream SStr;
+
             SStr << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)r
-                                                                  << (unsigned int)g
-                                                                  << (unsigned int)b;
+                 << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)g
+                 << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)b;
+
             return SStr.str();
         }
     };
