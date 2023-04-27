@@ -93,27 +93,33 @@ namespace MegaHackExt {
         MH_DLL void setCallback(Callback callback);
 
         static Button* WithCallback(const char* str, Callback callback) {
-            Button* Btn = Create(str);
-            Btn->setCallback(callback);
-            return Btn;
+            Button* obj = Create(str);
+            obj->setCallback(callback);
+            return obj;
         }
     };
 
-    class MH_DLL CheckBox {
+    class CheckBox {
         typedef void(MH_CALL* Callback)(CheckBox*, bool);
 
        public:
-        CheckBox() = delete;
-        CheckBox(const CheckBox&) = delete;
-        CheckBox& operator=(const CheckBox&) = delete;
-        ~CheckBox() = delete;
+        MH_DLL CheckBox() = delete;
+        MH_DLL CheckBox(const CheckBox&) = delete;
+        MH_DLL CheckBox& operator=(const CheckBox&) = delete;
+        MH_DLL ~CheckBox() = delete;
 
-        static CheckBox* Create(const char* str);
+        MH_DLL static CheckBox* Create(const char* str);
 
-        void setCallback(Callback callback);
+        MH_DLL void setCallback(Callback callback);
 
-        void set(bool b, bool trigger_callback = true);
-        bool get() const;
+        MH_DLL void set(bool b, bool trigger_callback = true);
+        MH_DLL bool get() const;
+
+        static CheckBox* WithCallback(const char* str, Callback callback) {
+            CheckBox* obj = Create(str);
+            obj->setCallback(callback);
+            return obj;
+        }
     };
 
     class ComboBox {
