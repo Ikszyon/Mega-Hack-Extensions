@@ -256,6 +256,13 @@ namespace MegaHackExt {
         void refresh(bool trigger_callback = true) {
             this->set(this->get(), trigger_callback);
         }
+
+        static Spinner* WithCallback(const char* prefix, const char* suffix, Callback callback) {
+            Spinner* obj = Spinner::Create(prefix, suffix);
+            obj->setCallback(callback);
+            obj->refresh();
+            return obj;
+        }
     };
 
     class ColourPicker {
@@ -276,6 +283,12 @@ namespace MegaHackExt {
 
         void refresh(bool trigger_callback = true) {
             this->set(this->get(), trigger_callback);
+        }
+
+        static ColourPicker* WithCallback(Colour colour, Callback callback) {
+            ColourPicker* obj = Create(colour);
+            obj->setCallback(callback);
+            return obj;
         }
 
         std::string getHexString() {
