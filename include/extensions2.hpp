@@ -27,6 +27,27 @@ namespace MegaHackExt {
 
             return SStr.str();
         }
+
+        void fromHexString(std::string HexColor) {
+            if(HexColor.length() != 6) {
+                HexColor = "000000";
+            }
+
+            std::vector<uint8_t> VectorColor;
+
+            for(int i = 0; i < HexColor.length(); i += 2) {
+                unsigned int x;
+                std::stringstream SStr;
+
+                SStr << std::hex << HexColor.substr(i, 2);
+                SStr >> x;
+                VectorColor.push_back(x);
+            }
+
+            r = VectorColor[0];
+            g = VectorColor[1];
+            b = VectorColor[2];
+        }
     };
 
     namespace Client {
@@ -54,6 +75,12 @@ namespace MegaHackExt {
             if(auto_commit) {
                 Client::commit(this);
             }
+        }
+
+        static Window* CreateEx(const char* title, std::vector<void*> elements, bool auto_commit = true) {
+            Window* window = Create(title);
+            window->addElements(elements, auto_commit);
+            return window;
         }
     };
 
@@ -92,7 +119,7 @@ namespace MegaHackExt {
 
         MH_DLL void setCallback(Callback callback);
 
-        static Button* WithCallback(const char* str, Callback callback) {
+        static Button* CreateEx(const char* str, Callback callback) {
             Button* obj = Create(str);
             obj->setCallback(callback);
             return obj;
@@ -115,9 +142,10 @@ namespace MegaHackExt {
         MH_DLL void set(bool b, bool trigger_callback = true);
         MH_DLL bool get() const;
 
-        static CheckBox* WithCallback(const char* str, Callback callback) {
+        static CheckBox* CreateEx(const char* str, bool b, bool trigger_callback, Callback callback) {
             CheckBox* obj = Create(str);
             obj->setCallback(callback);
+            obj->set(b, trigger_callback);
             return obj;
         }
     };
@@ -144,21 +172,7 @@ namespace MegaHackExt {
             this->set(this->get(), trigger_callback);
         }
 
-        void increment(int max_index, bool trigger_callback = true) {
-            // get max_index by calling strValues, which returns an int
-            // if you set max_index to a value that is too large gd will crash
-            if(this->get() != max_index) {
-                this->set(this->get() + 1, trigger_callback);
-            }
-        }
-
-        void decrement(bool trigger_callback = true) {
-            if(this->get() != 0) {
-                this->set(this->get() - 1, trigger_callback);
-            }
-        }
-
-        int strValues(std::vector<std::string> vector, bool direction = MH_FWD) {
+        void strValues(std::vector<std::string> vector, bool direction = MH_FWD) {
             const char* strs[MH_BOX_MAX];
             if(direction) {
                 for(int i = vector.size() - 1; i >= 0; i--) {
@@ -171,7 +185,14 @@ namespace MegaHackExt {
             }
             strs[vector.size()] = nullptr;
             this->setValues(strs, 0);
-            return vector.size() - 1;
+        }
+
+        static ComboBox* CreateEx(const char* prefix, const char* suffix, std::vector<std::string> vector, bool direction, int i, bool trigger_callback, Callback callback) {
+            ComboBox* obj = Create(prefix, suffix);
+            obj->strValues(vector, direction);
+            obj->set(i, trigger_callback);
+            obj->setCallback(callback);
+            return obj;
         }
     };
 
@@ -193,7 +214,7 @@ namespace MegaHackExt {
         MH_DLL void set(int i, bool b);
         MH_DLL bool get(int i) const;
 
-        int strValues(std::vector<std::string> vector, bool direction) {
+        void strValues(std::vector<std::string> vector, bool direction = MH_FWD) {
             const char* strs[MH_BOX_MAX];
             if(direction) {
                 for(int i = vector.size() - 1; i >= 0; i--) {
@@ -206,7 +227,14 @@ namespace MegaHackExt {
             }
             strs[vector.size()] = nullptr;
             this->setValues(strs);
-            return vector.size() - 1;
+        }
+
+        static SelectionBox* CreateEx(const char* str, std::vector<std::string> vector, bool direction, int i, bool trigger_callback, Callback callback) {
+            SelectionBox* obj = Create(str);
+            obj->strValues(vector, direction);
+            obj->set(i, trigger_callback);
+            obj->setCallback(callback);
+            return obj;
         }
     };
 
@@ -226,20 +254,16 @@ namespace MegaHackExt {
         MH_DLL void set(const char* str);
         MH_DLL const char* get() const;
 
-        static TextBox* CreateHex(const char* placeholder) {    // idc that this is bad
-            TextBox* box = Create(placeholder);
-
-            box->setCallback([](TextBox* temp, const char* str) {
-                std::string text = str;
-                text.erase(remove_if(text.begin(), text.end(), [](char current) {return !isxdigit(current);}), text.end());
-                temp->set(text.c_str());
-            });
-
-            return box;
-        }
-
         void refresh() {
             this->set(this->get());
+        }
+
+        static TextBox* CreateEx(const char* placeholder, const char* set, Callback callback) {
+            TextBox* obj = Create(placeholder);
+            obj->setCallback(callback);
+            if(set != nullptr) {
+                obj->set(set);
+            }
         }
     };
 
@@ -263,10 +287,10 @@ namespace MegaHackExt {
             this->set(this->get(), trigger_callback);
         }
 
-        static Spinner* WithCallback(const char* prefix, const char* suffix, Callback callback) {
-            Spinner* obj = Spinner::Create(prefix, suffix);
+        static Spinner* CreateEx(const char* prefix, const char* suffix, double v, bool trigger_callback, Callback callback) {
+            Spinner* obj = Create(prefix, suffix);
+            obj->set(v);
             obj->setCallback(callback);
-            obj->refresh();
             return obj;
         }
     };
@@ -291,29 +315,26 @@ namespace MegaHackExt {
             this->set(this->get(), trigger_callback);
         }
 
-        static ColourPicker* WithCallback(Colour colour, Callback callback) {
-            ColourPicker* obj = Create(colour);
-            obj->setCallback(callback);
-            return obj;
-        }
-
         std::string getHexString() {
             return this->get().toHexString();
         }
 
         void setHexString(std::string HexColor) {
-            std::vector<uint8_t> VectorColor;
-
-            for(int i = 0; i < HexColor.length(); i += 2) {
-                unsigned int x;
-                std::stringstream SStr;
-
-                SStr << std::hex << HexColor.substr(i, 2);
-                SStr >> x;
-                VectorColor.push_back(x);
+            if(HexColor.length() != 6) {
+                HexColor = "000000";
             }
 
-            this->set({VectorColor[0], VectorColor[1], VectorColor[2]});
+            Colour Color;
+            Color.fromHexString(HexColor);
+
+            this->set(Color);
+        }
+
+        static ColourPicker* CreateEx(Colour colour, Colour set, Callback callback) {
+            ColourPicker* obj = Create(colour);
+            obj->set(set);
+            obj->setCallback(callback);
+            return obj;
         }
     };
 }
